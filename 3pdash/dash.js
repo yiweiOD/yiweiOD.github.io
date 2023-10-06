@@ -115,7 +115,7 @@ const getMean = function(homes, type) {
 }
 
 const getValuePercent = function(home) {
-	return (home.OVM_VALUATION - home.HEADLINE - home.CREDIT_REPAIRS_USD) / home.OVM_VALUATION
+	return (home.OVM_VALUATION - home.HEADLINE - home.CREDIT_REPAIRS_USD) / (home.OVM_VALUATION - home.HEADLINE)
 }
 
 const getValueAmount = function(home) {
