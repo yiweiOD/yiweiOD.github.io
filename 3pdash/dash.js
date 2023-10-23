@@ -76,6 +76,18 @@ const prettifyNum = function(number) {
 	return formatter.format(number)
 }
 
+const prettifyNum2 = function(number) {
+	const formatter = new Intl.NumberFormat('en-US', {
+		style: 'decimal',
+		minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
+		maximumFractionDigits: 0 // (causes 2500.99 to be printed as $2,501)
+	})
+	if (number == null) {
+		return '--'
+	}
+	return formatter.format(number)
+}
+
 const addDashes = function(address) {
 	address.trim()
 	address = address.replaceAll(',', '')
@@ -254,6 +266,21 @@ const getShowComps = function(home) {
 		}
 	}
 
+	// Add in the rest of the comps
+	for (let i = 0; i < home.comps.length; i++) {
+		const restComp = home.comps[i]
+		const pos = home.showComps.findIndex(i => i.comp.MATCH_ADDRESS === restComp.MATCH_ADDRESS)
+
+		if (pos < 0) {
+			home.showComps.push({
+				'comp': restComp,
+				'type': 'comp'
+			})
+		}
+	}
+
+	console.log(home.comps.length)
+	console.log(home.showComps.length)
 
 }
 
@@ -331,7 +358,7 @@ const drawMainPage = function(homes) {
 	}
 	activeDiv.innerHTML = activeHomes.length + '<span>active</span>'
 	activeDiv.onclick = function() {
-		drawPage(activeHomes)
+		drawMainPage(activeHomes)
 	}
 	navDiv.appendChild(activeDiv)
 
@@ -342,7 +369,7 @@ const drawMainPage = function(homes) {
 	}
 	unenrolledDiv.innerHTML = unenrolledHomes.length + '<span>unenrolled</span>'
 	unenrolledDiv.onclick = function() {
-		drawPage(unenrolledHomes)
+		drawMainPage(unenrolledHomes)
 	}
 	navDiv.appendChild(unenrolledDiv)
 
@@ -441,6 +468,7 @@ const drawMainPage = function(homes) {
 
 		addStatSect('"Value" %', prettifyPercent(getValuePercent(home)), statsTopDiv)
 		addStatSect('"Value" $', prettifyPrice(getValueAmount(home)), statsTopDiv)
+		addStatSect('# comps', prettifyNum2(home.showComps.length), statsTopDiv)
 		addStatSect('$ / sq ft', prettifyPrice(home.LAST_EO_PRICE / home.TOTAL_LIVING_SQ_FT), statsTopDiv)
 		addStatSect('RestB', prettifyNum(home.CONDITION_SCORE), statsTopDiv)
 
@@ -494,6 +522,8 @@ async function drawMainMap(homes) {
     gestureHandling: 'greedy'
   })
 
+  markers = []
+
   for (home of homes) {
   	const marker = new AdvancedMarkerElement({
 			map,
@@ -521,6 +551,8 @@ async function drawHomeMap(home) {
     mapId: "map",
     gestureHandling: 'greedy'
   })
+
+  markers = []
 
   for (let i = 0; i < home.showComps.length; i++) {
   	const comp = home.showComps[i].comp
