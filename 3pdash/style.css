@@ -110,7 +110,7 @@ table {
 }
 
 .home {
-	margin: 1em 2em 4em 2em;
+	margin: 1em 0em 4em 2em;
 }
 
 .home h2 {
@@ -124,21 +124,20 @@ table {
 }
 
 .home .stats {
-	display: flex;
 	margin: 0.5em 0;
+}
+
+.home .stats .statsTop,
+.home .stats .statsPrice,
+.home .stats .statsEng {
+	display: flex;
 	flex-wrap: nowrap;
+	margin: 0.5em 0;
 }
 
-.home .stats .statsSec:nth-child(1) {
-	width: 7em;
-}
-
-.home .stats .statsSec:nth-child(3),
-.home .stats .statsSec:nth-child(4),
-.home .stats .statsSec:nth-child(5),
-.home .stats .statsSec:nth-child(6),
-.home .stats .statsSec:nth-child(7) {
-	width: 4em;
+.home .stats .statsSec {
+	width: 5em;
+	flex-grow: 0;
 }
 
 .home .links {
@@ -154,12 +153,13 @@ table {
 
 .homes {
 	flex-grow: 0;
+	width: 50%;
 }
 
 #map {
 	top: 0;
 	right: 0;
-	width: 1200px;
+	width: 50%;
 	height: 100%;
 	flex-grow: 1;
 	background: blue;
@@ -173,6 +173,30 @@ table {
   font-size: 14px;
   padding: 10px 15px;
   position: relative;
+}
+
+.currentHome .marker-price {
+	background: red;
+}
+
+.currentHome .marker-price::after {
+	border-top: 8px solid red;
+}
+
+.nearbyComp .marker-price {
+	background: green;
+}
+
+.nearbyComp .marker-price::after {
+	border-top: 8px solid green;
+}
+
+.priceComp .marker-price {
+	background: purple;
+}
+
+.priceComp .marker-price::after {
+	border-top: 8px solid purple;
 }
 
 .marker-price::after {
