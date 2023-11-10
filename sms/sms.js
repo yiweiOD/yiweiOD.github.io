@@ -116,7 +116,7 @@ const relTime = function(time) {
 	if (delta < minute) {
 		relTime = delta + ' seconds ago';
 	} else if (delta < 2 * minute) {
-		relTime = 'a minute ago.'
+		relTime = 'A minute ago'
 	} else if (delta < hour) {
 		relTime = Math.floor(delta / minute) + ' minutes ago';
 	} else if (Math.floor(delta / hour) == 1) {
@@ -124,7 +124,7 @@ const relTime = function(time) {
 	} else if (delta < day) {
 		relTime = Math.floor(delta / hour) + ' hours ago';
 	} else if (delta < day * 2) {
-		relTime = 'yesterday';
+		relTime = 'Yesterday';
 	} else if (delta < week) {
 		relTime = Math.floor(delta / day) + ' days ago'
 	} else {
