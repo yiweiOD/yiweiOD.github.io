@@ -131,6 +131,10 @@ table {
 	border-spacing: 0;
 }
 
+.embed-layout-container {
+	padding: 0 !important;
+}
+
 #content {
 	display: flex;
 	color: #000;
