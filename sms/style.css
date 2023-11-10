@@ -1,0 +1,203 @@
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+
+/* HTML5 display-role reset for older browsers */
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+	display: block;
+}
+
+body {
+	line-height: 1;
+	font: 1em Graphik !important;
+	color: #222;
+}
+
+ol,
+ul {
+	list-style: none;
+}
+
+blockquote,
+q {
+	quotes: none;
+}
+
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+	content: '';
+	content: none;
+}
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+#content {
+	display: flex;
+	color: #000;
+	height: 100vh;
+	line-height: 1.4em;
+}
+
+.nav {
+	width: 300px;
+	overflow-y: scroll;
+}
+
+.nav .user {
+	padding: 16px 12px;
+	border-bottom: 1px solid #ccc;
+	cursor: pointer;
+}
+
+.nav .user:hover {
+	background: #eee;
+}
+
+.nav .stats {
+	font-size: 13px;
+	color: #aaa;
+}
+
+.texts {
+	padding: 40px;
+	flex-grow: 1;
+	overflow-y: scroll;
+}
+
+.texts div {
+	width: 300px;
+	background: #DDDCE2;
+	border-radius: 16px;
+	padding: 8px 12px;
+	margin-bottom: 8px;
+}
+
+.texts .customer {
+	background: #1990EC;
+	margin-left: 100px;
+	color: white;
+}
+
+.info {
+	width: 300px;
+	padding: 40px;
+}
+
+.info .name {
+	font-size: 32px;
+	font-weight: 400;
+	padding-bottom: 24px;
+	line-height: 1em;
+}
+
+.info .score {
+	font-weight: 400;
+	padding: 12px 0;
+}
+
+.info .prefs {
+	padding-top: 12px;
+	font-size: 13px;
+	text-transform: uppercase;
+	color: #999;
+}
