@@ -47,14 +47,14 @@ const start = function (smsAll, div) {
 			smsAll[num].texts = [];
 			smsAll[num].texts.push({
 				OD_NUM: sms.OPENDOOR_PHONE_NUMBER,
-				BODY: sms.BODY,
+				BODY: parseBody(sms.BODY),
 				DATE: sms.CREATED_AT,
 				CUST_MSG: sms.CUSTOMER_MESSAGE,
 			});
 		} else {
 			smsAll[num].texts.push({
 				OD_NUM: sms.OPENDOOR_PHONE_NUMBER,
-				BODY: sms.BODY,
+				BODY: parseBody(sms.BODY),
 				DATE: sms.CREATED_AT,
 				CUST_MSG: sms.CUSTOMER_MESSAGE,
 			});
@@ -91,6 +91,11 @@ const parseCities = function(cities) {
 	let parsedCities = cities.split(',');
 	return parsedCities;
 };
+
+const parseBody = function(body) {
+	body = body.replaceAll('\n', '<br>');
+	return body;
+}
 
 const drawPage = function (smsAll, div) {
 	let navDiv = document.createElement("div");
