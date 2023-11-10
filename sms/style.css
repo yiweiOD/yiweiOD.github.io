@@ -131,7 +131,7 @@ table {
 	border-spacing: 0;
 }
 
-.embed-layout-container {
+.mode-embed #content-root>.embed-layout-container {
 	padding: 0 !important;
 }
 
