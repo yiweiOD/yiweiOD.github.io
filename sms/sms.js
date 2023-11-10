@@ -43,6 +43,7 @@ const start = function (smsAll, div) {
 			smsAll[num].ourTexts = 0;
 			smsAll[num].userTexts = 0;
 			smsAll[num].unsubscribed = false;
+			smsAll[num].lastTextTime = "";
 
 			smsAll[num].texts = [];
 			smsAll[num].texts.push({
@@ -69,6 +70,9 @@ const start = function (smsAll, div) {
 		if (sms.BODY == 'STOP') {
 			smsAll[num].unsubscribed == true
 		}
+
+		smsAll[num].lastTextTime = relTime(sms.CREATED_AT);
+
 	}
 
 	drawPage(smsAll, div);
@@ -95,7 +99,45 @@ const parseCities = function(cities) {
 const parseBody = function(body) {
 	body = body.replaceAll('\n', '<br>');
 	return body;
-}
+};
+
+const relTime = function(time) {
+	let textTime = new Date(time);
+	let now = new Date();
+
+	let delta = Math.round((now - textTime) / 1000);
+	let relTime = "";
+
+	const minute = 60,
+		hour = minute * 60,
+		day = hour * 24,
+		week = day * 7;
+
+	if (delta < minute) {
+		relTime = delta + ' seconds ago';
+	} else if (delta < 2 * minute) {
+		relTime = 'a minute ago.'
+	} else if (delta < hour) {
+		relTime = Math.floor(delta / minute) + ' minutes ago';
+	} else if (Math.floor(delta / hour) == 1) {
+		relTime = '1 hour ago.'
+	} else if (delta < day) {
+		relTime = Math.floor(delta / hour) + ' hours ago';
+	} else if (delta < day * 2) {
+		relTime = 'yesterday';
+	} else if (delta < week) {
+		relTime = Math.floor(delta / day) + ' days ago'
+	} else {
+		relTime = 'Over a week ago'
+	}
+
+	return relTime;
+};
+
+const parseDate = function(time) {
+	let textTime = new Date(time);
+	return textTime.toLocaleDateString() + ' ' + textTime.toLocaleTimeString();
+};
 
 const drawPage = function (smsAll, div) {
 	let navDiv = document.createElement("div");
@@ -118,6 +160,7 @@ const drawPage = function (smsAll, div) {
 		navItemDiv.innerHTML = `
 			<div class="name">${user.name}</div>
 			<div class="stats">Score: ${user.score} &bull; User replies: ${user.userTexts}</div>
+			<div class="updated">${user.lastTextTime}</div>
 		`;
 
 		navItemDiv.userId = id;
@@ -136,9 +179,9 @@ const drawTexts = function (id, smsAll, textDiv, infoDiv) {
 
 	for (text of user.texts) {
 		if (text.CUST_MSG) {
-			textDiv.innerHTML += '<div class="customer">' + text.BODY + "</div>";
+			textDiv.innerHTML += '<div class="customer text">' + text.BODY + '<div class="time">' + parseDate(text.DATE) + '</div></div>';
 		} else {
-			textDiv.innerHTML += "<div>" + text.BODY + "</div>";
+			textDiv.innerHTML += '<div class="text">' + text.BODY + '<div class="time">' + parseDate(text.DATE) + '</div></div>';
 		}
 	}
 

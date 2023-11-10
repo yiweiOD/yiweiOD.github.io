@@ -157,7 +157,7 @@ table {
 	background: #eee;
 }
 
-.nav .stats {
+.nav .stats, .nav .updated {
 	font-size: 13px;
 	color: #aaa;
 }
@@ -168,7 +168,7 @@ table {
 	overflow-y: scroll;
 }
 
-.texts div {
+.texts .text {
 	width: 300px;
 	background: #DDDCE2;
 	border-radius: 16px;
@@ -180,6 +180,16 @@ table {
 	background: #1990EC;
 	margin-left: 100px;
 	color: white;
+}
+
+.texts .text .time {
+	font-size: 13px;
+	color: #666;
+	padding-top: 12px;
+}
+
+.texts .customer .time {
+	color: #ccc;
 }
 
 .info {
