@@ -67,8 +67,8 @@ const start = function (smsAll, div) {
 			smsAll[num].ourTexts++;
 		}
 
-		if (sms.BODY == 'STOP') {
-			smsAll[num].unsubscribed == true
+		if (sms.BODY.toLowerCase() == 'stop') {
+			smsAll[num].unsubscribed = true
 		}
 
 		smsAll[num].lastTextTime = relTime(sms.CREATED_AT);
@@ -162,6 +162,14 @@ const drawPage = function (smsAll, div) {
 			<div class="stats">Score: ${user.score} &bull; User replies: ${user.userTexts}</div>
 			<div class="updated">${user.lastTextTime}</div>
 		`;
+
+		if (user.userTexts > 0) {
+			navItemDiv.setAttribute("class", "user replied");
+		}
+
+		if (user.unsubscribed) {
+			navItemDiv.setAttribute("class", "user unsubscribed");
+		}
 
 		navItemDiv.userId = id;
 		navItemDiv.onclick = function () {

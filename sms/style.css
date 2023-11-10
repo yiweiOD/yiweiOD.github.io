@@ -157,6 +157,15 @@ table {
 	background: #eee;
 }
 
+.nav .unsubscribed {
+	background: #FFDDDD;
+}
+
+.nav .replied {
+	background: #E7FFE7;
+}
+
+
 .nav .stats, .nav .updated {
 	font-size: 13px;
 	color: #aaa;
