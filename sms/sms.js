@@ -159,7 +159,6 @@ const parseDate = function(time) {
 };
 
 const drawPage = function (smsAll, div, sortedUsers) {
-	console.log(sortedUsers)
 
 	let navDiv = document.createElement("div");
 	navDiv.setAttribute("class", "nav");
@@ -192,7 +191,7 @@ const drawPage = function (smsAll, div, sortedUsers) {
 			navItemDiv.setAttribute("class", "user unsubscribed");
 		}
 
-		navItemDiv.userId = id;
+		navItemDiv.userId = sortedUser.id;
 		navItemDiv.onclick = function () {
 			drawTexts(this.userId, smsAll, textDiv, infoDiv);
 		};
