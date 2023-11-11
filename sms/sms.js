@@ -4,10 +4,11 @@ const data = datasets.filter(function (d) {
 	}
 })[0];
 
-let smsAll = {};
 let contentDiv = document.getElementById("content");
 
-const start = function (smsAll, div) {
+const start = function (data, div) {
+	let smsAll = {};
+
 	for (sms of data.content) {
 		let num = sms.CUSTOMER_PHONE_NUMBER;
 		if (!smsAll[num]) {
@@ -43,7 +44,7 @@ const start = function (smsAll, div) {
 			smsAll[num].ourTexts = 0;
 			smsAll[num].userTexts = 0;
 			smsAll[num].unsubscribed = false;
-			smsAll[num].lastTextTime = "";
+			smsAll[num].lastTextRelTime = "";
 
 			smsAll[num].texts = [];
 			smsAll[num].texts.push({
@@ -71,11 +72,29 @@ const start = function (smsAll, div) {
 			smsAll[num].unsubscribed = true
 		}
 
-		smsAll[num].lastTextTime = relTime(sms.CREATED_AT);
+		smsAll[num].lastTextRelTime = relTime(sms.CREATED_AT);
+		smsAll[num].lastTextTime = new Date(sms.CREATED_AT);
 
 	}
 
-	drawPage(smsAll, div);
+	let sortedUsers = [];
+	for (id in smsAll) {
+		let user = smsAll[id];
+		sortedUsers.push({
+			id: id,
+			lastTextTime: user.lastTextTime
+		});
+	}
+
+	sortedUsers.sort(function(x, y) {
+		if (x.lastTextTime > y.lastTextTime) {
+			return -1
+		} else {
+			return 1
+		}
+	});
+
+	drawPage(smsAll, div, sortedUsers);
 };
 
 const formatPhoneNum = function(num) {
@@ -139,7 +158,9 @@ const parseDate = function(time) {
 	return textTime.toLocaleDateString() + ' ' + textTime.toLocaleTimeString();
 };
 
-const drawPage = function (smsAll, div) {
+const drawPage = function (smsAll, div, sortedUsers) {
+	console.log(sortedUsers)
+
 	let navDiv = document.createElement("div");
 	navDiv.setAttribute("class", "nav");
 	div.appendChild(navDiv);
@@ -152,15 +173,15 @@ const drawPage = function (smsAll, div) {
 	infoDiv.setAttribute("class", "info");
 	div.appendChild(infoDiv);
 
-	for (id in smsAll) {
-		let user = smsAll[id];
+	for (sortedUser of sortedUsers) {
+		let user = smsAll[sortedUser.id];
 
 		let navItemDiv = document.createElement("div");
 		navItemDiv.setAttribute("class", "user");
 		navItemDiv.innerHTML = `
 			<div class="name">${user.name}</div>
 			<div class="stats">Score: ${user.score} &bull; User replies: ${user.userTexts}</div>
-			<div class="updated">${user.lastTextTime}</div>
+			<div class="updated">${user.lastTextRelTime}</div>
 		`;
 
 		if (user.userTexts > 0) {
@@ -212,4 +233,4 @@ const drawTexts = function (id, smsAll, textDiv, infoDiv) {
 
 };
 
-start(smsAll, contentDiv);
+start(data, contentDiv);
