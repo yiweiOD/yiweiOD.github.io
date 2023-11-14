@@ -4,7 +4,7 @@ const data = datasets.filter(function (d) {
 	}
 })[0];
 
-let contentDiv = document.getElementById("content");
+let contentDiv = document.getElementById('content');
 
 const start = function (data, div) {
 	let smsAll = {};
@@ -24,9 +24,27 @@ const start = function (data, div) {
 			smsAll[num].phone = formatPhoneNum(sms.CUSTOMER_PHONE_NUMBER);
 
 			smsAll[num].matches = [];
-			smsAll[num].matches.push(sms.FIRST_MATCH);
-			smsAll[num].matches.push(sms.SECOND_MATCH);
-			smsAll[num].matches.push(sms.THIRD_MATCH);
+
+			smsAll[num].matches.push({
+				date: sms.FIRST_MATCH_DATE,
+				address: sms.FIRST_MATCH,
+				clicked: sms.FIRST_MATCH_CLICKED,
+				reply: sms.FIRST_MATCH_REPLY
+			});
+
+			smsAll[num].matches.push({
+				date: sms.SECOND_MATCH_DATE,
+				address: sms.SECOND_MATCH,
+				clicked: sms.SECOND_MATCH_CLICKED,
+				reply: sms.SECOND_MATCH_REPLY
+			});
+
+			smsAll[num].matches.push({
+				date: sms.THIRD_MATCH_DATE,
+				address: sms.THIRD_MATCH,
+				clicked: sms.THIRD_MATCH_CLICKED,
+				reply: sms.THIRD_MATCH_REPLY
+			});
 
 			smsAll[num].cities = parseCities(sms.CITIES);
 			smsAll[num].max_price = sms.MAX_PRICE;
@@ -53,6 +71,10 @@ const start = function (data, div) {
 				DATE: sms.CREATED_AT,
 				CUST_MSG: sms.CUSTOMER_MESSAGE,
 			});
+
+			smsAll[num].textExp = 'old';
+			smsAll[num].firstTextTime = new Date(sms.CREATED_AT);
+
 		} else {
 			smsAll[num].texts.push({
 				OD_NUM: sms.OPENDOOR_PHONE_NUMBER,
@@ -70,6 +92,11 @@ const start = function (data, div) {
 
 		if (sms.BODY.toLowerCase() == 'stop') {
 			smsAll[num].unsubscribed = true
+		}
+
+		let expText = 'search through our 400';
+		if (sms.BODY.indexOf(expText) > 0) {
+			smsAll[num].textExp = 'new';
 		}
 
 		smsAll[num].lastTextRelTime = relTime(sms.CREATED_AT);
@@ -95,6 +122,8 @@ const start = function (data, div) {
 	});
 
 	drawPage(smsAll, div, sortedUsers);
+
+	runTextExpAnalytics(smsAll, sortedUsers);
 };
 
 const formatPhoneNum = function(num) {
@@ -177,6 +206,7 @@ const drawPage = function (smsAll, div, sortedUsers) {
 
 		let navItemDiv = document.createElement("div");
 		navItemDiv.setAttribute("class", "user");
+		navItemDiv.setAttribute("id", "id" + sortedUser.id);
 		navItemDiv.innerHTML = `
 			<div class="name">${user.name}</div>
 			<div class="stats">Score: ${user.score} &bull; User replies: ${user.userTexts}</div>
@@ -192,18 +222,28 @@ const drawPage = function (smsAll, div, sortedUsers) {
 		}
 
 		navItemDiv.userId = sortedUser.id;
+		navItemDiv.prevClass = navItemDiv.className;
+
 		navItemDiv.onclick = function () {
 			drawTexts(this.userId, smsAll, textDiv, infoDiv);
 		};
 		navDiv.appendChild(navItemDiv);
 	}
 
-	drawTexts(Object.keys(smsAll)[0], smsAll, textDiv, infoDiv);
+	drawTexts(sortedUsers[0].id, smsAll, textDiv, infoDiv);
 };
 
 const drawTexts = function (id, smsAll, textDiv, infoDiv) {
-	textDiv.innerHTML = "";
 	let user = smsAll[id];
+	let userDiv = document.getElementById('id' + id);
+	let prevUserDiv = document.getElementsByClassName('active');
+
+	if (prevUserDiv[0]) {
+		prevUserDiv[0].setAttribute('class', prevUserDiv[0].prevClass);
+	}
+	userDiv.setAttribute('class', 'user active');
+
+	textDiv.innerHTML = "";
 
 	for (text of user.texts) {
 		if (text.CUST_MSG) {
@@ -230,6 +270,132 @@ const drawTexts = function (id, smsAll, textDiv, infoDiv) {
 		<div class="price">$${user.min_price} - $${user.max_price}</div>
 	`;
 
+	textDiv.scrollTop = textDiv.scrollHeight;
+
 };
+
+const runTextExpAnalytics = function(smsAll, sortedUsers) {
+	let numUsersOld = 0,
+		numUsersNew = 0,
+		numFirstMatchOld = 0,
+		numFirstMatchNew = 0,
+		numFirstMatchClickedOld = 0,
+		numFirstMatchClickedNew = 0,
+		numFirstMatchRepliedOld = 0,
+		numFirstMatchRepliedNew = 0,
+		numFirstMatchTimetoOld = 0,
+		numFirstMatchTimetoNew = 0,
+		numSecondMatchOld = 0,
+		numSecondMatchNew = 0,
+		numSecondMatchClickedOld = 0,
+		numSecondMatchClickedNew = 0,
+		numSecondMatchRepliedOld = 0,
+		numSecondMatchRepliedNew = 0,
+		numSecondMatchTimetoOld = 0,
+		numSecondMatchTimetoNew = 0,
+		numThirdMatchOld = 0,
+		numThirdMatchNew = 0,
+		numThirdMatchClickedOld = 0,
+		numThirdMatchClickedNew = 0,
+		numThirdMatchRepliedOld = 0,
+		numThirdMatchRepliedNew = 0,
+		numThirdMatchTimetoOld = 0,
+		numThirdMatchTimetoNew = 0;
+
+	for (sortedUser of sortedUsers) {
+		let user = smsAll[sortedUser.id];	
+
+		if (user.textExp == 'old') {
+			numUsersOld++;
+
+			if (user.matches[0].address) {
+				numFirstMatchOld++;
+				if (user.matches[0].clicked) {
+					numFirstMatchClickedOld++;
+				}
+				if (user.matches[0].reply) {
+					numFirstMatchRepliedOld++;
+				}
+				numFirstMatchTimetoOld += new Date(user.matches[0].date) - user.firstTextTime
+			}
+
+			if (user.matches[1].address) {
+				numSecondMatchOld++;
+
+				if (user.matches[0].clicked) {
+					numSecondMatchClickedOld++;
+				}
+				if (user.matches[0].reply) {
+					numSecondMatchRepliedOld++;
+				}
+				numSecondMatchTimetoOld += new Date(user.matches[1].date) - new Date(user.matches[0].date)
+			}
+
+			if (user.matches[2].address) {
+				numThirdMatchOld++;
+
+				if (user.matches[0].clicked) {
+					numThirdMatchClickedOld++;
+				}
+				if (user.matches[0].reply) {
+					numThirdMatchRepliedOld++;
+				}
+				numThirdMatchTimetoOld += new Date(user.matches[2].date) - new Date(user.matches[1].date)
+			}
+		} else {
+			numUsersNew++;
+
+			if (user.matches[0].address) {
+				numFirstMatchNew++;
+				if (user.matches[0].clicked) {
+					numFirstMatchClickedNew++;
+				}
+				if (user.matches[0].reply) {
+					numFirstMatchRepliedNew++;
+				}
+				numFirstMatchTimetoNew += new Date(user.matches[0].date) - user.firstTextTime
+			}
+
+			if (user.matches[1].address) {
+				numSecondMatchNew++;
+
+				if (user.matches[0].clicked) {
+					numSecondMatchClickedNew++;
+				}
+				if (user.matches[0].reply) {
+					numSecondMatchRepliedNew++;
+				}
+				numSecondMatchTimetoNew += new Date(user.matches[1].date) - new Date(user.matches[0].date)
+			}
+
+			if (user.matches[2].address) {
+				numThirdMatchNew++;
+
+				if (user.matches[0].clicked) {
+					numThirdMatchClickedNew++;
+				}
+				if (user.matches[0].reply) {
+					numThirdMatchRepliedNew++;
+				}
+				numThirdMatchTimetoNew += new Date(user.matches[2].date) - new Date(user.matches[1].date)
+			}
+		}
+
+	}
+
+	console.log(`
+		Old users: ${numUsersOld}
+		First match: ${numFirstMatchOld} / ${numFirstMatchClickedOld} clicked / ${numFirstMatchRepliedOld} replied / ${numFirstMatchTimetoOld/1000/3600/numFirstMatchOld} time (hr)
+		Second match: ${numSecondMatchOld} / ${numSecondMatchClickedOld} clicked / ${numSecondMatchRepliedOld} replied / ${numSecondMatchTimetoOld/1000/3600/numSecondMatchOld} time (hr)
+		Third match: ${numThirdMatchOld} / ${numThirdMatchClickedOld} clicked / ${numThirdMatchRepliedOld} replied / ${numThirdMatchTimetoOld/1000/3600/numThirdMatchOld} time (hr)
+
+		New users: ${numUsersNew}
+		First match: ${numFirstMatchNew} / ${numFirstMatchClickedNew} clicked / ${numFirstMatchRepliedNew} replied / ${numFirstMatchTimetoNew/1000/3600/numFirstMatchNew} time (hr)
+		Second match: ${numSecondMatchNew} / ${numSecondMatchClickedNew} clicked / ${numSecondMatchRepliedNew} replied / ${numSecondMatchTimetoNew/1000/3600/numSecondMatchNew} time (hr)
+		Third match: ${numThirdMatchNew} / ${numThirdMatchClickedNew} clicked / ${numThirdMatchRepliedNew} replied / ${numThirdMatchTimetoNew/1000/3600/numThirdMatchNew} time (hr)
+	`);
+
+	console.log(smsAll);
+}
 
 start(data, contentDiv);

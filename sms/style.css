@@ -157,6 +157,14 @@ table {
 	background: #eee;
 }
 
+.nav .active {
+	background: #D3D2D7;
+}
+
+.nav .active .stats, .nav .active .updated {
+	color: #666;
+}
+
 .nav .unsubscribed {
 	background: #FFDDDD;
 }
@@ -164,7 +172,6 @@ table {
 .nav .replied {
 	background: #E7FFE7;
 }
-
 
 .nav .stats, .nav .updated {
 	font-size: 13px;
