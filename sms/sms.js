@@ -4,9 +4,15 @@ const data = datasets.filter(function (d) {
 	}
 })[0];
 
+const data_tour = datasets.filter(function (d) {
+	if (d) {
+		return d.queryName == "SMS Tours"
+	}
+})[0];
+
 let contentDiv = document.getElementById('content');
 
-const start = function (data, div) {
+const start = function (data, data_tour, div) {
 	let smsAll = {};
 
 	for (sms of data.content) {
@@ -62,6 +68,7 @@ const start = function (data, div) {
 			smsAll[num].ourTexts = 0;
 			smsAll[num].userTexts = 0;
 			smsAll[num].unsubscribed = false;
+			smsAll[num].smsTour = false;
 			smsAll[num].lastTextRelTime = "";
 
 			smsAll[num].texts = [];
@@ -97,6 +104,70 @@ const start = function (data, div) {
 		let expText = 'search through our 400';
 		if (sms.BODY.indexOf(expText) > 0) {
 			smsAll[num].textExp = 'new';
+		}
+
+		smsAll[num].lastTextRelTime = relTime(sms.CREATED_AT);
+		smsAll[num].lastTextTime = new Date(sms.CREATED_AT);
+
+	}
+
+	for (sms of data_tour.content) {
+		let num = sms.CUSTOMER_PHONE_NUMBER;
+
+		if (!smsAll[num]) {
+			smsAll[num] = {};
+
+			smsAll[num].name = sms.FULL_NAME;
+			if (sms.FULL_NAME.trim() == "") {
+				smsAll[num].name = formatPhoneNum(sms.CUSTOMER_PHONE_NUMBER);
+			}
+			smsAll[num].email = sms.EMAIL;
+			smsAll[num].phone = formatPhoneNum(sms.CUSTOMER_PHONE_NUMBER);
+
+			smsAll[num].ourTexts = 0;
+			smsAll[num].userTexts = 0;
+			smsAll[num].unsubscribed = false;
+			smsAll[num].lastTextRelTime = "";
+
+			smsAll[num].texts = [];
+			smsAll[num].texts.push({
+				OD_NUM: sms.OPENDOOR_PHONE_NUMBER,
+				BODY: parseBody(sms.BODY),
+				DATE: sms.CREATED_AT,
+				CUST_MSG: sms.CUSTOMER_MESSAGE,
+			});
+
+			smsAll[num].smsTour = true;
+
+			smsAll[num].firstTextTime = new Date(sms.CREATED_AT);
+
+		} else {
+
+			if (smsAll[num].smsTour) {
+
+				smsAll[num].texts.unshift({
+					OD_NUM: sms.OPENDOOR_PHONE_NUMBER,
+					BODY: parseBody(sms.BODY),
+					DATE: sms.CREATED_AT,
+					CUST_MSG: sms.CUSTOMER_MESSAGE,
+				});
+
+			}
+			
+		}
+
+		if (sms.CUSTOMER_MESSAGE) {
+			smsAll[num].userTexts++;
+		} else {
+			smsAll[num].ourTexts++;
+		}
+
+		if (sms.BODY.trim().toLowerCase() == 'stop') {
+			smsAll[num].unsubscribed = true;
+		}
+
+		if (sms.FULL_NAME == 'Jayme Owens') {
+			console.log('1' + sms.BODY.toLowerCase() + '1')
 		}
 
 		smsAll[num].lastTextRelTime = relTime(sms.CREATED_AT);
@@ -342,7 +413,7 @@ const runTextExpAnalytics = function(smsAll, sortedUsers) {
 				}
 				numThirdMatchTimetoOld += new Date(user.matches[2].date) - new Date(user.matches[1].date)
 			}
-		} else {
+		} else if (user.textExp == 'new') {
 			numUsersNew++;
 
 			if (user.matches[0].address) {
@@ -398,4 +469,4 @@ const runTextExpAnalytics = function(smsAll, sortedUsers) {
 	console.log(smsAll);
 }
 
-start(data, contentDiv);
+start(data, data_tour, contentDiv);
