@@ -12,6 +12,7 @@ const data_tour = datasets.filter(function (d) {
 
 let contentDiv = document.getElementById('content');
 let g_SMS;
+let sortedUsers = [];
 
 const start = function (data, data_tour, div) {
 	let smsAll = {};
@@ -176,7 +177,7 @@ const start = function (data, data_tour, div) {
 
 	}
 
-	let sortedUsers = [];
+	sortedUsers = [];
 	for (id in smsAll) {
 		let user = smsAll[id];
 		sortedUsers.push({
@@ -193,7 +194,7 @@ const start = function (data, data_tour, div) {
 		}
 	});
 
-	drawPage(smsAll, div, sortedUsers);
+	drawPage(smsAll, div, sortedUsers, '');
 
 	runTextExpAnalytics(smsAll, sortedUsers);
 };
@@ -259,11 +260,79 @@ const parseDate = function(time) {
 	return textTime.toLocaleDateString() + ' ' + textTime.toLocaleTimeString();
 };
 
-const drawPage = function (smsAll, div, sortedUsers) {
+const search = function(query, smsAll) {
+	console.log(query);
+
+	if (query.trim() == '') {
+
+		drawPage(smsAll, contentDiv, sortedUsers, '');
+
+	} else {
+
+		let users = [];
+		for (userId in smsAll) {
+			let user = smsAll[userId];
+
+			let userContext = user.name + ' ' + 
+				user.email + ' ' + 
+				user.phone + ' ' + 
+				'score:' + user.score + ' ' + 
+				'unsub:' + user.unsubscribed + ' ' + 
+				'replies:' + user.userTexts + ' ' +
+				'onboarded:' + user.completedOnboarding + ' ';
+
+			for (text of user.texts) {
+				userContext += 'body:' + text.BODY;
+			}
+
+			userContext = userContext.toLowerCase();
+
+			if (userContext.indexOf(query) > -1) {
+				users.push({
+					id: userId,
+					lastTextTime: user.lastTextTime
+				});
+			}
+		}
+
+		users.sort(function(x, y) {
+			if (x.lastTextTime > y.lastTextTime) {
+				return -1
+			} else {
+				return 1
+			}
+		});
+
+		drawPage(smsAll, contentDiv, users, query);
+
+	}
+
+	
+
+	
+};
+
+const drawPage = function (smsAll, div, sortedUsers, query) {
+
+	div.innerHTML = '';
 
 	let navDiv = document.createElement("div");
 	navDiv.setAttribute("class", "nav");
 	div.appendChild(navDiv);
+
+	let searchDiv = document.createElement("div");
+	searchDiv.setAttribute("class", "search");
+	navDiv.appendChild(searchDiv);
+
+	searchDiv.innerHTML = '<input type="text" id="search" name="search" onChange="search(this.value, g_SMS)" value="' + query + '" />';
+
+	if (query != '') {
+		let searchResultsNumDiv = document.createElement("div");
+		searchResultsNumDiv.setAttribute("class", "searchResultsNum");
+		navDiv.appendChild(searchResultsNumDiv);
+
+		searchResultsNumDiv.innerHTML = sortedUsers.length + ' users';
+	}
 
 	let textDiv = document.createElement("div");
 	textDiv.setAttribute("class", "texts");
@@ -312,7 +381,10 @@ const drawPage = function (smsAll, div, sortedUsers) {
 
 	drawStats(smsAll, statsDiv);
 
-	drawTexts(sortedUsers[0].id, smsAll, textDiv, infoDiv);
+	if (sortedUsers.length > 0) {
+		drawTexts(sortedUsers[0].id, smsAll, textDiv, infoDiv);
+	}
+
 };
 
 const drawTexts = function (id, smsAll, textDiv, infoDiv) {

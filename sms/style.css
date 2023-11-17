@@ -178,6 +178,25 @@ table {
 	color: #aaa;
 }
 
+.nav .searchResultsNum {
+	font-size: 11px;
+	color: #aaa;
+	padding: 4px 12px;
+	border-bottom: 1px solid #ccc;
+}
+
+.nav .search {
+	padding: 12px;
+	border-bottom: 1px solid #ccc;
+}
+
+.nav .search input {
+	width: 243px;
+	border: 1px solid #ccc;
+	padding: 8px;
+	border-radius: 4px;
+}
+
 .texts {
 	padding: 40px;
 	flex-grow: 1;
