@@ -270,6 +270,8 @@ const search = function(query, smsAll) {
 	} else {
 
 		let users = [];
+		query = query.toLowerCase();
+
 		for (userId in smsAll) {
 			let user = smsAll[userId];
 
@@ -379,7 +381,7 @@ const drawPage = function (smsAll, div, sortedUsers, query) {
 		navDiv.appendChild(navItemDiv);
 	}
 
-	drawStats(smsAll, statsDiv);
+	drawStats(smsAll, statsDiv, sortedUsers);
 
 	if (sortedUsers.length > 0) {
 		drawTexts(sortedUsers[0].id, smsAll, textDiv, infoDiv);
@@ -428,7 +430,7 @@ const drawTexts = function (id, smsAll, textDiv, infoDiv) {
 
 };
 
-const drawStats = function (smsAll, statsDiv) {
+const drawStats = function (smsAll, statsDiv, sortedUsers) {
 
 	let numUsers = 0,
 		numUsersOnboarded = 0,
@@ -437,8 +439,8 @@ const drawStats = function (smsAll, statsDiv) {
 		numNoResponse = 0,
 		numUnsubscribed = 0;
 
-	for (userId in smsAll) {
-		let user = smsAll[userId];
+	for (userPair of sortedUsers) {
+		let user = smsAll[userPair.id];
 		numUsers++;
 		if (user.completedOnboarding) numUsersOnboarded++;
 		if (user.origin == 'postTourText') numUsersToured++;
