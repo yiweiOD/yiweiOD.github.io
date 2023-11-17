@@ -11,6 +11,7 @@ const data_tour = datasets.filter(function (d) {
 })[0];
 
 let contentDiv = document.getElementById('content');
+let g_SMS;
 
 const start = function (data, data_tour, div) {
 	let smsAll = {};
@@ -71,6 +72,9 @@ const start = function (data, data_tour, div) {
 			smsAll[num].smsTour = false;
 			smsAll[num].lastTextRelTime = "";
 
+			smsAll[num].origin = 'onboarding';
+			smsAll[num].completedOnboarding = true;
+
 			smsAll[num].texts = [];
 			smsAll[num].texts.push({
 				OD_NUM: sms.OPENDOOR_PHONE_NUMBER,
@@ -98,7 +102,7 @@ const start = function (data, data_tour, div) {
 		}
 
 		if (sms.BODY.toLowerCase() == 'stop') {
-			smsAll[num].unsubscribed = true
+			smsAll[num].unsubscribed = true;
 		}
 
 		let expText = 'search through our 400';
@@ -137,13 +141,14 @@ const start = function (data, data_tour, div) {
 				CUST_MSG: sms.CUSTOMER_MESSAGE,
 			});
 
-			smsAll[num].smsTour = true;
+			smsAll[num].origin = 'postTourText';
+			smsAll[num].completedOnboarding = false;
 
 			smsAll[num].firstTextTime = new Date(sms.CREATED_AT);
 
 		} else {
 
-			if (smsAll[num].smsTour) {
+			if (smsAll[num].origin == 'postTourText') {
 
 				smsAll[num].texts.unshift({
 					OD_NUM: sms.OPENDOOR_PHONE_NUMBER,
@@ -164,10 +169,6 @@ const start = function (data, data_tour, div) {
 
 		if (sms.BODY.trim().toLowerCase() == 'stop') {
 			smsAll[num].unsubscribed = true;
-		}
-
-		if (sms.FULL_NAME == 'Jayme Owens') {
-			console.log('1' + sms.BODY.toLowerCase() + '1')
 		}
 
 		smsAll[num].lastTextRelTime = relTime(sms.CREATED_AT);
@@ -268,9 +269,17 @@ const drawPage = function (smsAll, div, sortedUsers) {
 	textDiv.setAttribute("class", "texts");
 	div.appendChild(textDiv);
 
+	let sidebarDiv = document.createElement("div");
+	sidebarDiv.setAttribute("class", "sidebar");
+	div.appendChild(sidebarDiv);
+
 	let infoDiv = document.createElement("div");
 	infoDiv.setAttribute("class", "info");
-	div.appendChild(infoDiv);
+	sidebarDiv.appendChild(infoDiv);
+
+	let statsDiv = document.createElement("div");
+	statsDiv.setAttribute("class", "mainStats");
+	sidebarDiv.appendChild(statsDiv);
 
 	for (sortedUser of sortedUsers) {
 		let user = smsAll[sortedUser.id];
@@ -280,7 +289,7 @@ const drawPage = function (smsAll, div, sortedUsers) {
 		navItemDiv.setAttribute("id", "id" + sortedUser.id);
 		navItemDiv.innerHTML = `
 			<div class="name">${user.name}</div>
-			<div class="stats">Score: ${user.score} &bull; User replies: ${user.userTexts}</div>
+			<div class="stats">Score: ${user.score} &bull; Replies: ${user.userTexts}</div>
 			<div class="updated">${user.lastTextRelTime}</div>
 		`;
 
@@ -300,6 +309,8 @@ const drawPage = function (smsAll, div, sortedUsers) {
 		};
 		navDiv.appendChild(navItemDiv);
 	}
+
+	drawStats(smsAll, statsDiv);
 
 	drawTexts(sortedUsers[0].id, smsAll, textDiv, infoDiv);
 };
@@ -344,6 +355,60 @@ const drawTexts = function (id, smsAll, textDiv, infoDiv) {
 	textDiv.scrollTop = textDiv.scrollHeight;
 
 };
+
+const drawStats = function (smsAll, statsDiv) {
+
+	let numUsers = 0,
+		numUsersOnboarded = 0,
+		numUsersToured = 0,
+		numReplied = 0,
+		numNoResponse = 0,
+		numUnsubscribed = 0;
+
+	for (userId in smsAll) {
+		let user = smsAll[userId];
+		numUsers++;
+		if (user.completedOnboarding) numUsersOnboarded++;
+		if (user.origin == 'postTourText') numUsersToured++;
+		if (user.userTexts > 0) numReplied++;
+		if (user.userTexts == 0) numNoResponse++;
+		if (user.unsubscribed) numUnsubscribed++;
+	}
+
+	statsDiv.innerHTML = `
+		<p>Buyers in DFW since Sep 1, 2023</p>
+
+		<div class="statGroup">
+			<div class="stat">
+				<div class="statName"># buyers texted</div>
+				<div class="statValue">${numUsers}</div>
+			</div>
+			<div class="stat">
+				<div class="statName">From onboarding</div>
+				<div class="statValue">${numUsersOnboarded}</div>
+			</div>
+			<div class="stat">
+				<div class="statName">From tour</div>
+				<div class="statValue">${numUsersToured}</div>
+			</div>
+		</div>
+
+		<div class="statGroup">
+			<div class="stat">
+				<div class="statName">Replied at all</div>
+				<div class="statValue">${numReplied} (${numReplied / numUsers * 100}%)</div>
+			</div>
+			<div class="stat">
+				<div class="statName">No response</div>
+				<div class="statValue">${numNoResponse} (${numNoResponse / numUsers * 100}%)</div>
+			</div>
+			<div class="stat">
+				<div class="statName">Unsubscribed</div>
+				<div class="statValue">${numUnsubscribed} (${numUnsubscribed / numUsers * 100}%)</div>
+			</div>
+		</div>
+	`;
+}
 
 const runTextExpAnalytics = function(smsAll, sortedUsers) {
 	let numUsersOld = 0,
@@ -466,7 +531,7 @@ const runTextExpAnalytics = function(smsAll, sortedUsers) {
 		Third match: ${numThirdMatchNew} / ${numThirdMatchClickedNew} clicked / ${numThirdMatchRepliedNew} replied / ${numThirdMatchTimetoNew/1000/3600/numThirdMatchNew} time (hr)
 	`);
 
-	console.log(smsAll);
+	g_SMS = smsAll;
 }
 
 start(data, data_tour, contentDiv);
