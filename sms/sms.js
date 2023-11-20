@@ -55,7 +55,11 @@ const start = function (data, data_tour, div) {
 			});
 
 			smsAll[num].is_agent = sms.IS_AGENT;
-			smsAll[num].tourCount = sms.VISIT_COUNT;
+
+			smsAll[num].tourCount = 0;
+			if (sms.VISIT_COUNT) {
+				smsAll[num].tourCount = parseInt(sms.VISIT_COUNT);
+			}
 			smsAll[num].cid = sms.CUSTOMER_ID;
 
 			smsAll[num].cities = parseCities(sms.CITIES);
@@ -139,7 +143,10 @@ const start = function (data, data_tour, div) {
 			smsAll[num].lastTextRelTime = "";
 
 			smsAll[num].is_agent = sms.IS_AGENT;
-			smsAll[num].tourCount = sms.VISIT_COUNT;
+			smsAll[num].tourCount = 0;
+			if (sms.VISIT_COUNT) {
+				smsAll[num].tourCount = parseInt(sms.VISIT_COUNT);
+			}
 			smsAll[num].cid = sms.CUSTOMER_ID;
 
 			smsAll[num].texts = [];
@@ -463,22 +470,30 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 		numToursNoResponse = 0,
 		numToursUnsubscribed = 0;
 
+	let numToursRepliedArray = [],
+		numToursNoResponseArray = [],
+		numToursUnsubscribedArray = [];
+
 	for (userPair of sortedUsers) {
 		let user = smsAll[userPair.id];
 		numUsers++;
+
 		if (user.completedOnboarding) numUsersOnboarded++;
 		if (user.origin == 'postTourText') numUsersToured++;
 		if (user.userTexts > 0) {
 			numReplied++;
 			numToursReplied += user.tourCount;
+			numToursRepliedArray.push(user.tourCount);
 		}
 		if (user.userTexts == 0) {
 			numNoResponse++;
 			numToursNoResponse += user.tourCount;
+			numToursNoResponseArray.push(user.tourCount);
 		}
 		if (user.unsubscribed) {
 			numUnsubscribed++;
 			numToursUnsubscribed += user.tourCount;
+			numToursUnsubscribedArray.push(user.tourCount);
 		}
 	}
 
@@ -487,8 +502,40 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 	let numUnsubcribedPercent = numUnsubscribed / numUsers * 100;
 
 	let avgTourCountReplied = numToursReplied / numReplied;
-	let avgTourCountNoResponse = numToursNoResponse / numReplied;
-	let avgTourCountUnsubscribed = numToursUnsubscribed / numReplied;
+	let avgTourCountNoResponse = numToursNoResponse / numNoResponse;
+	let avgTourCountUnsubscribed = numToursUnsubscribed / numUnsubscribed;
+
+	numToursRepliedArray.sort(function(x, y) {
+		if (parseInt(x) > parseInt(y)) {
+			return -1
+		} else {
+			return 1
+		}
+	});
+
+	numToursNoResponseArray.sort(function(x, y) {
+		if (parseInt(x) > parseInt(y)) {
+			return -1
+		} else {
+			return 1
+		}
+	});
+
+	numToursUnsubscribedArray.sort(function(x, y) {
+		if (parseInt(x) > parseInt(y)) {
+			return -1
+		} else {
+			return 1
+		}
+	});
+
+	console.log(numToursRepliedArray[Math.floor(numToursRepliedArray.length/2)]);
+	console.log(numToursNoResponseArray[Math.floor(numToursNoResponseArray.length/2)]);
+	console.log(numToursUnsubscribedArray[Math.floor(numToursUnsubscribedArray.length/2)]);
+
+	console.log(numToursRepliedArray);
+	console.log(numToursNoResponseArray);
+	console.log(numToursUnsubscribedArray);
 
 	statsDiv.innerHTML = `
 		<p>Buyers in DFW since Sep 1, 2023</p>
