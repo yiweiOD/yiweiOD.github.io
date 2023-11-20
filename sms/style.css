@@ -261,13 +261,22 @@ table {
 .info .name {
 	font-size: 32px;
 	font-weight: 400;
-	padding-bottom: 24px;
+	padding-bottom: 12px;
 	line-height: 1em;
+}
+
+.info .adminLink {
+	padding-bottom: 12px;
 }
 
 .info .score {
 	font-weight: 400;
-	padding: 12px 0;
+	padding: 12px 0 0 0;
+}
+
+.info .isAgent {
+	font-weight: 400;
+	padding: 0 0 12px 0;
 }
 
 .info .prefs {

@@ -54,6 +54,10 @@ const start = function (data, data_tour, div) {
 				reply: sms.THIRD_MATCH_REPLY
 			});
 
+			smsAll[num].is_agent = sms.IS_AGENT;
+			smsAll[num].tourCount = sms.VISIT_COUNT;
+			smsAll[num].cid = sms.CUSTOMER_ID;
+
 			smsAll[num].cities = parseCities(sms.CITIES);
 			smsAll[num].max_price = sms.MAX_PRICE;
 			smsAll[num].min_price = sms.MIN_PRICE;
@@ -133,6 +137,10 @@ const start = function (data, data_tour, div) {
 			smsAll[num].userTexts = 0;
 			smsAll[num].unsubscribed = false;
 			smsAll[num].lastTextRelTime = "";
+
+			smsAll[num].is_agent = sms.IS_AGENT;
+			smsAll[num].tourCount = sms.VISIT_COUNT;
+			smsAll[num].cid = sms.CUSTOMER_ID;
 
 			smsAll[num].texts = [];
 			smsAll[num].texts.push({
@@ -358,11 +366,18 @@ const drawPage = function (smsAll, div, sortedUsers, query) {
 		let navItemDiv = document.createElement("div");
 		navItemDiv.setAttribute("class", "user");
 		navItemDiv.setAttribute("id", "id" + sortedUser.id);
-		navItemDiv.innerHTML = `
+
+		let navItemDivHTML = `
 			<div class="name">${user.name}</div>
-			<div class="stats">Score: ${user.score} &bull; Replies: ${user.userTexts}</div>
+			<div class="stats">`;
+		if (user.score) {
+			navItemDivHTML += `Score: ${user.score} &bull;`;
+		}
+		navItemDivHTML += `Replies: ${user.userTexts} &bull; Tours: ${user.tourCount}</div>
 			<div class="updated">${user.lastTextRelTime}</div>
 		`;
+
+		navItemDiv.innerHTML = navItemDivHTML;
 
 		if (user.userTexts > 0) {
 			navItemDiv.setAttribute("class", "user replied");
@@ -411,9 +426,15 @@ const drawTexts = function (id, smsAll, textDiv, infoDiv) {
 
 	infoDiv.innerHTML = `
 		<div class="name">${user.name}</div>
+
+		<div class="adminLink"><a href="https://admin.opendoor.com/admin/customers/${user.cid}/data" target="_blank">Admin</a></div>
+
 		<div class="phone">${user.phone}</div>
 		<div class="email">${user.email}</div>
-		<div class="score">Score: ${user.score}</div>
+
+		<div class="score">Target buyer score: ${user.score}</div>
+		<div class="tourCount">Num tours: ${user.tourCount}</div>
+		<div class="isAgent">Is agent: ${user.is_agent}</div>
 
 		<div class="timeline">Timeline: ${user.timeline}</div>
 		<div class="agent">Agent: ${user.agent}</div>
@@ -437,17 +458,37 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 		numUsersToured = 0,
 		numReplied = 0,
 		numNoResponse = 0,
-		numUnsubscribed = 0;
+		numUnsubscribed = 0,
+		numToursReplied = 0,
+		numToursNoResponse = 0,
+		numToursUnsubscribed = 0;
 
 	for (userPair of sortedUsers) {
 		let user = smsAll[userPair.id];
 		numUsers++;
 		if (user.completedOnboarding) numUsersOnboarded++;
 		if (user.origin == 'postTourText') numUsersToured++;
-		if (user.userTexts > 0) numReplied++;
-		if (user.userTexts == 0) numNoResponse++;
-		if (user.unsubscribed) numUnsubscribed++;
+		if (user.userTexts > 0) {
+			numReplied++;
+			numToursReplied += user.tourCount;
+		}
+		if (user.userTexts == 0) {
+			numNoResponse++;
+			numToursNoResponse += user.tourCount;
+		}
+		if (user.unsubscribed) {
+			numUnsubscribed++;
+			numToursUnsubscribed += user.tourCount;
+		}
 	}
+
+	let numRepliedPercent = numReplied / numUsers * 100;
+	let numNoResponsePercent = numNoResponse / numUsers * 100;
+	let numUnsubcribedPercent = numUnsubscribed / numUsers * 100;
+
+	let avgTourCountReplied = numToursReplied / numReplied;
+	let avgTourCountNoResponse = numToursNoResponse / numReplied;
+	let avgTourCountUnsubscribed = numToursUnsubscribed / numReplied;
 
 	statsDiv.innerHTML = `
 		<p>Buyers in DFW since Sep 1, 2023</p>
@@ -470,15 +511,15 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 		<div class="statGroup">
 			<div class="stat">
 				<div class="statName">Replied at all</div>
-				<div class="statValue">${numReplied} (${numReplied / numUsers * 100}%)</div>
+				<div class="statValue">${numReplied} (${numRepliedPercent.toLocaleString('en-US', {maximumFractionDigits:2})}%) &bull; ${avgTourCountReplied.toLocaleString('en-US', {maximumFractionDigits:2})} avg tours</div>
 			</div>
 			<div class="stat">
 				<div class="statName">No response</div>
-				<div class="statValue">${numNoResponse} (${numNoResponse / numUsers * 100}%)</div>
+				<div class="statValue">${numNoResponse} (${numNoResponsePercent.toLocaleString('en-US', {maximumFractionDigits:2})}%) &bull; ${avgTourCountNoResponse.toLocaleString('en-US', {maximumFractionDigits:2})} avg tours</div>
 			</div>
 			<div class="stat">
 				<div class="statName">Unsubscribed</div>
-				<div class="statValue">${numUnsubscribed} (${numUnsubscribed / numUsers * 100}%)</div>
+				<div class="statValue">${numUnsubscribed} (${numUnsubcribedPercent.toLocaleString('en-US', {maximumFractionDigits:2})}%) &bull; ${avgTourCountUnsubscribed.toLocaleString('en-US', {maximumFractionDigits:2})} avg tours</div>
 			</div>
 		</div>
 	`;
