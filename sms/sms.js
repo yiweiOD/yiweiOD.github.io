@@ -296,7 +296,8 @@ const search = function(query, smsAll) {
 				'score:' + user.score + ' ' + 
 				'unsub:' + user.unsubscribed + ' ' + 
 				'replies:' + user.userTexts + ' ' +
-				'onboarded:' + user.completedOnboarding + ' ';
+				'onboarded:' + user.completedOnboarding + ' '
+				'is_agent:' + user.is_agent + ' ';
 
 			for (text of user.texts) {
 				userContext += 'body:' + text.BODY;
