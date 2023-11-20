@@ -258,6 +258,10 @@ table {
 	padding-bottom: 1em;
 }
 
+.mainStats .stat .small {
+	font-size: 13px;
+}
+
 .info .name {
 	font-size: 32px;
 	font-weight: 400;

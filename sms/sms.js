@@ -1,18 +1,18 @@
-const data = datasets.filter(function (d) {
+const g_data = datasets.filter(function (d) {
 	if (d) {
 		return d.queryName == "SMS v2"
 	}
 })[0];
 
-const data_tour = datasets.filter(function (d) {
+const g_data_tour = datasets.filter(function (d) {
 	if (d) {
 		return d.queryName == "SMS Tours"
 	}
 })[0];
 
-let contentDiv = document.getElementById('content');
+let g_contentDiv = document.getElementById('content');
 let g_SMS;
-let sortedUsers = [];
+let g_sortedUsers = [];
 
 const start = function (data, data_tour, div) {
 	let smsAll = {};
@@ -161,6 +161,8 @@ const start = function (data, data_tour, div) {
 			smsAll[num].completedOnboarding = false;
 
 			smsAll[num].firstTextTime = new Date(sms.CREATED_AT);
+			smsAll[num].lastTextRelTime = relTime(sms.CREATED_AT);
+			smsAll[num].lastTextTime = new Date(sms.CREATED_AT);
 
 		} else {
 
@@ -187,21 +189,20 @@ const start = function (data, data_tour, div) {
 			smsAll[num].unsubscribed = true;
 		}
 
-		smsAll[num].lastTextRelTime = relTime(sms.CREATED_AT);
-		smsAll[num].lastTextTime = new Date(sms.CREATED_AT);
+		smsAll[num].firstTextTime = new Date(sms.CREATED_AT);
 
 	}
 
-	sortedUsers = [];
+	g_sortedUsers = [];
 	for (id in smsAll) {
 		let user = smsAll[id];
-		sortedUsers.push({
+		g_sortedUsers.push({
 			id: id,
 			lastTextTime: user.lastTextTime
 		});
 	}
 
-	sortedUsers.sort(function(x, y) {
+	g_sortedUsers.sort(function(x, y) {
 		if (x.lastTextTime > y.lastTextTime) {
 			return -1
 		} else {
@@ -209,10 +210,28 @@ const start = function (data, data_tour, div) {
 		}
 	});
 
-	drawPage(smsAll, div, sortedUsers, '');
+	drawPage(smsAll, div, g_sortedUsers, '');
 
-	runTextExpAnalytics(smsAll, sortedUsers);
+	runTextExpAnalytics(smsAll, g_sortedUsers);
 };
+
+const prettyPercent = function(number) {
+	const formatter = new Intl.NumberFormat('en-US', {
+		style: 'percent',
+		minimumFractionDigits: 2, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
+		maximumFractionDigits: 2 // (causes 2500.99 to be printed as $2,501)
+	})
+	return formatter.format(number)
+}
+
+const prettyNumber = function(number) {
+	const formatter = new Intl.NumberFormat('en-US', {
+		style: 'decimal',
+		minimumFractionDigits: 2, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
+		maximumFractionDigits: 2 // (causes 2500.99 to be printed as $2,501)
+	})
+	return formatter.format(number)
+}
 
 const formatPhoneNum = function(num) {
 	let cleaned = ('' + num).replace(/\D/g, '');
@@ -280,7 +299,7 @@ const search = function(query, smsAll) {
 
 	if (query.trim() == '') {
 
-		drawPage(smsAll, contentDiv, sortedUsers, '');
+		drawPage(smsAll, g_contentDiv, g_sortedUsers, '');
 
 	} else {
 
@@ -321,13 +340,10 @@ const search = function(query, smsAll) {
 			}
 		});
 
-		drawPage(smsAll, contentDiv, users, query);
+		drawPage(smsAll, g_contentDiv, users, query);
 
 	}
 
-	
-
-	
 };
 
 const drawPage = function (smsAll, div, sortedUsers, query) {
@@ -506,68 +522,39 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 	let avgTourCountNoResponse = numToursNoResponse / numNoResponse;
 	let avgTourCountUnsubscribed = numToursUnsubscribed / numUnsubscribed;
 
-	numToursRepliedArray.sort(function(x, y) {
-		if (parseInt(x) > parseInt(y)) {
-			return -1
-		} else {
-			return 1
-		}
-	});
+	numToursRepliedArray.sort();
+	numToursNoResponseArray.sort();
+	numToursUnsubscribedArray.sort();
 
-	numToursNoResponseArray.sort(function(x, y) {
-		if (parseInt(x) > parseInt(y)) {
-			return -1
-		} else {
-			return 1
-		}
-	});
-
-	numToursUnsubscribedArray.sort(function(x, y) {
-		if (parseInt(x) > parseInt(y)) {
-			return -1
-		} else {
-			return 1
-		}
-	});
-
-	console.log(numToursRepliedArray[Math.floor(numToursRepliedArray.length/2)]);
-	console.log(numToursNoResponseArray[Math.floor(numToursNoResponseArray.length/2)]);
-	console.log(numToursUnsubscribedArray[Math.floor(numToursUnsubscribedArray.length/2)]);
-
-	console.log(numToursRepliedArray);
-	console.log(numToursNoResponseArray);
-	console.log(numToursUnsubscribedArray);
+	let medTourCountReplied = numToursRepliedArray[Math.floor(numToursRepliedArray.length/2)];
+	let medTourCountNoResponse = numToursNoResponseArray[Math.floor(numToursNoResponseArray.length/2)];
+	let medTourCountUnsubscribed = numToursUnsubscribedArray[Math.floor(numToursUnsubscribedArray.length/2)];
 
 	statsDiv.innerHTML = `
-		<p>Buyers in DFW since Sep 1, 2023</p>
+		<p>Stats</p>
 
 		<div class="statGroup">
 			<div class="stat">
 				<div class="statName"># buyers texted</div>
-				<div class="statValue">${numUsers}</div>
-			</div>
-			<div class="stat">
-				<div class="statName">From onboarding</div>
-				<div class="statValue">${numUsersOnboarded}</div>
-			</div>
-			<div class="stat">
-				<div class="statName">From tour</div>
-				<div class="statValue">${numUsersToured}</div>
+				<div class="statValue">${numUsers}<br><span class="small">${numUsersOnboarded} from onboarding &bull; ${numUsersToured} from tour</small></div>
 			</div>
 		</div>
 
 		<div class="statGroup">
 			<div class="stat">
 				<div class="statName">Replied at all</div>
-				<div class="statValue">${numReplied} (${numRepliedPercent.toLocaleString('en-US', {maximumFractionDigits:2})}%) &bull; ${avgTourCountReplied.toLocaleString('en-US', {maximumFractionDigits:2})} avg tours</div>
+				<div class="statValue">${numReplied} (${prettyPercent(numRepliedPercent)})<br>
+				<span class="small">Tours: ${prettyNumber(avgTourCountReplied)} avg &bull; ${prettyNumber(medTourCountReplied)} med</span></div>
 			</div>
 			<div class="stat">
 				<div class="statName">No response</div>
-				<div class="statValue">${numNoResponse} (${numNoResponsePercent.toLocaleString('en-US', {maximumFractionDigits:2})}%) &bull; ${avgTourCountNoResponse.toLocaleString('en-US', {maximumFractionDigits:2})} avg tours</div>
+				<div class="statValue">${numNoResponse} (${prettyPercent(numNoResponsePercent)})<br>
+				<span class="small">Tours: ${prettyNumber(avgTourCountNoResponse)} avg &bull; ${prettyNumber(medTourCountNoResponse)} med</span></div>
 			</div>
 			<div class="stat">
 				<div class="statName">Unsubscribed</div>
-				<div class="statValue">${numUnsubscribed} (${numUnsubcribedPercent.toLocaleString('en-US', {maximumFractionDigits:2})}%) &bull; ${avgTourCountUnsubscribed.toLocaleString('en-US', {maximumFractionDigits:2})} avg tours</div>
+				<div class="statValue">${numUnsubscribed} (${prettyPercent(numUnsubcribedPercent)}%)<br>
+				<span class="small">Tours: ${prettyNumber(avgTourCountUnsubscribed)} avg &bull; ${prettyNumber(medTourCountUnsubscribed)} med</span></div>
 			</div>
 		</div>
 	`;
@@ -697,4 +684,4 @@ const runTextExpAnalytics = function(smsAll, sortedUsers) {
 	g_SMS = smsAll;
 }
 
-start(data, data_tour, contentDiv);
+start(g_data, g_data_tour, g_contentDiv);
