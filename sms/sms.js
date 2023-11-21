@@ -10,6 +10,12 @@ const g_data_tour = datasets.filter(function (d) {
 	}
 })[0];
 
+let g_msgsTracked = [
+	'psst',
+	'found a few off-market Opendoor Exclusives near you',
+	'here to help with the home for sale at'
+];
+
 let g_contentDiv = document.getElementById('content');
 let g_SMS;
 let g_sortedUsers = [];
@@ -95,6 +101,14 @@ const start = function (data, data_tour, div) {
 			smsAll[num].textExp = 'old';
 			smsAll[num].firstTextTime = new Date(sms.CREATED_AT);
 
+			smsAll[num].msgsTracked = [];
+			for (msg of g_msgsTracked) {
+				smsAll[num].msgsTracked.push({
+					'count': 0,
+					'msg': msg
+				})
+			}
+
 		} else {
 			smsAll[num].texts.push({
 				OD_NUM: sms.OPENDOOR_PHONE_NUMBER,
@@ -112,6 +126,12 @@ const start = function (data, data_tour, div) {
 
 		if (sms.BODY.toLowerCase() == 'stop') {
 			smsAll[num].unsubscribed = true;
+		}
+
+		for (msg of smsAll[num].msgsTracked) {
+			if (sms.BODY.toLowerCase().indexOf(msg.msg) > 0) {
+				msg.count++;
+			}
 		}
 
 		let expText = 'search through our 400';
@@ -164,6 +184,14 @@ const start = function (data, data_tour, div) {
 			smsAll[num].lastTextRelTime = relTime(sms.CREATED_AT);
 			smsAll[num].lastTextTime = new Date(sms.CREATED_AT);
 
+			smsAll[num].msgsTracked = [];
+			for (msg of g_msgsTracked) {
+				smsAll[num].msgsTracked.push({
+					'count': 0,
+					'msg': msg
+				})
+			}
+
 		} else {
 
 			if (smsAll[num].origin == 'postTourText') {
@@ -187,6 +215,12 @@ const start = function (data, data_tour, div) {
 
 		if (sms.BODY.trim().toLowerCase() == 'stop') {
 			smsAll[num].unsubscribed = true;
+		}
+
+		for (msg of smsAll[num].msgsTracked) {
+			if (sms.BODY.toLowerCase().indexOf(msg.msg.toLowerCase()) > 0) {
+				msg.count++;
+			}
 		}
 
 		smsAll[num].firstTextTime = new Date(sms.CREATED_AT);
@@ -485,22 +519,36 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 		numUnsubscribed = 0,
 		numToursReplied = 0,
 		numToursNoResponse = 0,
-		numToursUnsubscribed = 0;
+		numToursUnsubscribed = 0,
+		numAgents = 0,
+		numMsgsTracked = [],
+		numRepliesArray = [],
+		totalReplies = 0;
 
 	let numToursRepliedArray = [],
 		numToursNoResponseArray = [],
 		numToursUnsubscribedArray = [];
+
+	for (msg of g_msgsTracked) {
+		numMsgsTracked.push({
+			'msg': msg,
+			'count': 0,
+			'buyers' : 0
+		});
+	}
 
 	for (userPair of sortedUsers) {
 		let user = smsAll[userPair.id];
 		numUsers++;
 
 		if (user.completedOnboarding) numUsersOnboarded++;
+		if (user.is_agent) numAgents++;
 		if (user.origin == 'postTourText') numUsersToured++;
 		if (user.userTexts > 0) {
 			numReplied++;
 			numToursReplied += user.tourCount;
 			numToursRepliedArray.push(user.tourCount);
+			numRepliesArray.push(user.userTexts);
 		}
 		if (user.userTexts == 0) {
 			numNoResponse++;
@@ -512,6 +560,14 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 			numToursUnsubscribed += user.tourCount;
 			numToursUnsubscribedArray.push(user.tourCount);
 		}
+		totalReplies += user.userTexts;
+
+		for (let i = 0; i < user.msgsTracked.length; i++) {
+			numMsgsTracked[i].count += user.msgsTracked[i].count;
+			if (user.msgsTracked[i].count > 0) {
+				numMsgsTracked[i].buyers++;
+			}			
+		}
 	}
 
 	let numRepliedPercent = numReplied / numUsers * 100;
@@ -522,13 +578,17 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 	let avgTourCountNoResponse = numToursNoResponse / numNoResponse;
 	let avgTourCountUnsubscribed = numToursUnsubscribed / numUnsubscribed;
 
-	numToursRepliedArray.sort();
-	numToursNoResponseArray.sort();
-	numToursUnsubscribedArray.sort();
+	numToursRepliedArray.sort(function (a,b) { return a-b; });
+	numToursNoResponseArray.sort(function (a,b) { return a-b; });
+	numToursUnsubscribedArray.sort(function (a,b) { return a-b; });
 
 	let medTourCountReplied = numToursRepliedArray[Math.floor(numToursRepliedArray.length/2)];
 	let medTourCountNoResponse = numToursNoResponseArray[Math.floor(numToursNoResponseArray.length/2)];
 	let medTourCountUnsubscribed = numToursUnsubscribedArray[Math.floor(numToursUnsubscribedArray.length/2)];
+
+	let avgReplies = totalReplies / numReplied;
+	numRepliesArray.sort(function (a,b) { return a-b; });
+	let medReplies = numRepliesArray[Math.floor(numRepliesArray.length/2)];
 
 	statsDiv.innerHTML = `
 		<p>Stats</p>
@@ -536,7 +596,9 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 		<div class="statGroup">
 			<div class="stat">
 				<div class="statName"># buyers texted</div>
-				<div class="statValue">${numUsers}<br><span class="small">${numUsersOnboarded} from onboarding &bull; ${numUsersToured} from tour</small></div>
+				<div class="statValue">${numUsers}<br><span class="small">${numUsersOnboarded} from onboarding
+				&bull; ${numUsersToured} from tour<br>
+				&bull; ${numAgents} agents</small></div>
 			</div>
 		</div>
 
@@ -553,11 +615,26 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 			</div>
 			<div class="stat">
 				<div class="statName">Unsubscribed</div>
-				<div class="statValue">${numUnsubscribed} (${prettyPercent(numUnsubcribedPercent)}%)<br>
+				<div class="statValue">${numUnsubscribed} (${prettyPercent(numUnsubcribedPercent)})<br>
 				<span class="small">Tours: ${prettyNumber(avgTourCountUnsubscribed)} avg &bull; ${prettyNumber(medTourCountUnsubscribed)} med</span></div>
 			</div>
 		</div>
 	`;
+
+	let msgsStatHTML = '<div class="statGroup">';
+
+	for (msg of numMsgsTracked) {
+		msgsStatHTML += `
+		<div class="stat">
+			<div class="statName">Msg: ${msg.msg}</div>
+			<div class="statValue">${msg.count} msgs (${msg.buyers} buyers)</div>
+		</div>
+		`
+	}
+
+	msgsStatHTML += '</div>';
+	statsDiv.innerHTML += msgsStatHTML;
+
 }
 
 const runTextExpAnalytics = function(smsAll, sortedUsers) {
