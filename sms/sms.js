@@ -523,7 +523,8 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 		numAgents = 0,
 		numMsgsTracked = [],
 		numRepliesArray = [],
-		totalReplies = 0;
+		totalReplies = 0,
+		lastTextTimeArray = [];
 
 	let numToursRepliedArray = [],
 		numToursNoResponseArray = [],
@@ -568,11 +569,13 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 				numMsgsTracked[i].buyers++;
 			}			
 		}
+
+		lastTextTimeArray.push(user.lastTextTime);
 	}
 
-	let numRepliedPercent = numReplied / numUsers * 100;
-	let numNoResponsePercent = numNoResponse / numUsers * 100;
-	let numUnsubcribedPercent = numUnsubscribed / numUsers * 100;
+	let numRepliedPercent = numReplied / numUsers;
+	let numNoResponsePercent = numNoResponse / numUsers;
+	let numUnsubcribedPercent = numUnsubscribed / numUsers;
 
 	let avgTourCountReplied = numToursReplied / numReplied;
 	let avgTourCountNoResponse = numToursNoResponse / numNoResponse;
@@ -589,6 +592,15 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 	let avgReplies = totalReplies / numReplied;
 	numRepliesArray.sort(function (a,b) { return a-b; });
 	let medReplies = numRepliesArray[Math.floor(numRepliesArray.length/2)];
+
+	lastTextTimeArray.sort(function (a,b) { return b-a; });
+
+	let now = new Date();
+	let medLastTextTime = (now - lastTextTimeArray[Math.ceil(lastTextTimeArray.length*50/100)]) / 1000 / 3600 / 24;
+	let p10LastTextTime = (now - lastTextTimeArray[Math.ceil(lastTextTimeArray.length*10/100)]) / 1000 / 3600 / 24;
+	let p25LastTextTime = (now - lastTextTimeArray[Math.ceil(lastTextTimeArray.length*25/100)]) / 1000 / 3600 / 24;
+	let p75LastTextTime = (now - lastTextTimeArray[Math.ceil(lastTextTimeArray.length*75/100)]) / 1000 / 3600 / 24;
+	let p90LastTextTime = (now - lastTextTimeArray[Math.ceil(lastTextTimeArray.length*90/100)]) / 1000 / 3600 / 24;
 
 	statsDiv.innerHTML = `
 		<p>Stats</p>
@@ -617,6 +629,21 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 				<div class="statName">Unsubscribed</div>
 				<div class="statValue">${numUnsubscribed} (${prettyPercent(numUnsubcribedPercent)})<br>
 				<span class="small">Tours: ${prettyNumber(avgTourCountUnsubscribed)} avg &bull; ${prettyNumber(medTourCountUnsubscribed)} med</span></div>
+			</div>
+		</div>
+
+		<div class="statGroup">
+			<div class="stat">
+				<div class="statName">Last text time</div>
+				<div class="statValue">
+					<span class="small">
+						10%: ${prettyNumber(p10LastTextTime)} (days ago)<br>
+						25%: ${prettyNumber(p25LastTextTime)} (days ago)<br>
+						50%: ${prettyNumber(medLastTextTime)} (days ago)<br>
+						75%: ${prettyNumber(p75LastTextTime)} (days ago)<br>
+						90%: ${prettyNumber(p90LastTextTime)} (days ago)<br>
+					</span>
+				</div>
 			</div>
 		</div>
 	`;
