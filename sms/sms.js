@@ -425,9 +425,16 @@ const drawPage = function (smsAll, div, sortedUsers, query) {
 		navItemDiv.setAttribute("class", "user");
 		navItemDiv.setAttribute("id", "id" + sortedUser.id);
 
-		let navItemDivHTML = `
-			<div class="name">${user.name}</div>
-			<div class="stats">`;
+		let navItemDivHTML = ''
+
+		if (user.is_agent) {
+			navItemDivHTML += `<div class="name">${user.name} <span class="agent">Agent</span></div>
+				<div class="stats">`;
+		} else {
+			navItemDivHTML += `<div class="name">${user.name}</div>
+				<div class="stats">`;
+		}
+		
 		if (user.score) {
 			navItemDivHTML += `Score: ${user.score} &bull;`;
 		}
@@ -515,6 +522,8 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 		numUsersOnboarded = 0,
 		numUsersToured = 0,
 		numReplied = 0,
+		numRepliedNonAgent = 0,
+		numRepliedAgent = 0,
 		numNoResponse = 0,
 		numUnsubscribed = 0,
 		numToursReplied = 0,
@@ -550,6 +559,11 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 			numToursReplied += user.tourCount;
 			numToursRepliedArray.push(user.tourCount);
 			numRepliesArray.push(user.userTexts);
+			if (user.is_agent) {
+				numRepliedAgent++;
+			} else {
+				numRepliedNonAgent++;
+			}
 		}
 		if (user.userTexts == 0) {
 			numNoResponse++;
@@ -574,6 +588,8 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 	}
 
 	let numRepliedPercent = numReplied / numUsers;
+	let numRepliedPercentNonAgent = numRepliedNonAgent / (numUsers - numAgents);
+	let numRepliedPercentAgent = numRepliedAgent / numAgents;
 	let numNoResponsePercent = numNoResponse / numUsers;
 	let numUnsubcribedPercent = numUnsubscribed / numUsers;
 
@@ -618,12 +634,17 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 			<div class="stat">
 				<div class="statName">Replied at all</div>
 				<div class="statValue">${numReplied} (${prettyPercent(numRepliedPercent)})<br>
-				<span class="small">Tours: ${prettyNumber(avgTourCountReplied)} avg &bull; ${prettyNumber(medTourCountReplied)} med</span></div>
+				<span class="small">
+					Non-agent replies: ${numRepliedNonAgent} (${prettyPercent(numRepliedPercentNonAgent)})<br>
+					Agent replies: ${numRepliedAgent} (${prettyPercent(numRepliedPercentAgent)})<br>
+					Tours: ${prettyNumber(avgTourCountReplied)} avg &bull; ${prettyNumber(medTourCountReplied)} med
+				</span></div>
 			</div>
 			<div class="stat">
 				<div class="statName">No response</div>
 				<div class="statValue">${numNoResponse} (${prettyPercent(numNoResponsePercent)})<br>
-				<span class="small">Tours: ${prettyNumber(avgTourCountNoResponse)} avg &bull; ${prettyNumber(medTourCountNoResponse)} med</span></div>
+				<span class="small">Tours: ${prettyNumber(avgTourCountNoResponse)} avg &bull; ${prettyNumber(medTourCountNoResponse)} med
+				</span></div>
 			</div>
 			<div class="stat">
 				<div class="statName">Unsubscribed</div>
@@ -634,7 +655,7 @@ const drawStats = function (smsAll, statsDiv, sortedUsers) {
 
 		<div class="statGroup">
 			<div class="stat">
-				<div class="statName">Last text time</div>
+				<div class="statName">Time since latest text</div>
 				<div class="statValue">
 					<span class="small">
 						10%: ${prettyNumber(p10LastTextTime)} (days ago)<br>

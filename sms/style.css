@@ -157,6 +157,17 @@ table {
 	background: #eee;
 }
 
+.nav .user .agent {
+	font-size: 11px;
+	background: #DC9E11;
+	color: white;
+	padding: 3px 5px;
+	border-radius: 4px;
+	margin: 0;
+	line-height: 1em;
+	float: right;
+}
+
 .nav .active {
 	background: #D3D2D7;
 }
