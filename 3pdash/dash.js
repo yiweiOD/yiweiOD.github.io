@@ -514,6 +514,7 @@ let map
 async function drawMainMap(homes) {
   const { Map } = await google.maps.importLibrary("maps")
   const { AdvancedMarkerElement } = await google.maps.importLibrary("marker")
+  const { Marker } = await google.maps.importLibrary("marker")
 
   map = new Map(document.getElementById("map"), {
     center: { lat: 33.0, lng: -96.95 },
@@ -538,6 +539,42 @@ async function drawMainMap(homes) {
   	if (marker) {
   		markers.push(marker)
   	}
+  }
+
+  const member_markers = [
+	{
+		name: 'Ashley',
+		lat: 33.1119089,
+		lng: -97.2249852,
+		image: 'https://ca.slack-edge.com/E030VNTC6FJ-U02BN2B7TJ5-2d1317decae1-512'
+	},
+	{
+		name: 'Jake',
+		lat: 33.033311,
+		lng: -96.738172,
+		image: 'https://ca.slack-edge.com/E030VNTC6FJ-U2N1B4W12-1943ae8d6040-512'
+	},
+	{
+		name: 'Adriana',
+		lat: 32.7464739,
+		lng: -96.8704671,
+		image: 'https://ca.slack-edge.com/E030VNTC6FJ-UAP0H0C1X-ea7ae4894ebc-512'
+	}
+  ]
+
+  for (let i = 0; i < member_markers.length; i++) {
+	const member = member_markers[i];
+	const icon = {
+		url: member.image,
+		scaledSize: new google.maps.Size(30, 30), // scaled size
+		origin: new google.maps.Point(0,0), // origin
+		anchor: new google.maps.Point(0, 0) // anchor
+	}
+	const marker = new Marker({
+		map,
+		position: { lat: member.lat, lng: member.lng},
+		icon: icon
+	})
   }
 }
 
